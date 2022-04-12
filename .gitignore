@@ -1,0 +1,6 @@
+*.tags
+CMakeFiles
+.vscode 
+out 
+*.out 
+Makefile 
