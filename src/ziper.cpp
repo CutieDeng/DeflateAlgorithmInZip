@@ -1,5 +1,5 @@
 #include "ziper.hpp" 
-#include "crc32.hpp"
+#include "crc_algorithm.hpp"
 #include "static_huffman.hpp"
 #include "header.hpp"
 
@@ -127,17 +127,14 @@ void ziper::write_local_header(std::filesystem::path const &p, cutie_tag::stored
         u32 size {0}; 
         *this->out << *header_ptr; 
         this->out->write(name.data(), name.length()); 
+        crc32_algorithm_machine machine{}; 
         while (file_stream) {
             file_stream.read(cache, LENGTH); 
             auto l = file_stream.gcount(); 
             size += l; 
             // std::cerr << size << std::endl; 
             this->out->write(cache, l); 
-            header_ptr->crc=crc()(reinterpret_cast<std::uint8_t*>(cache), std::uint32_t(l)); 
-            // if (!file_stream.eof()) {
-            //     std::cerr << "Read file " << name << " which is too long. " << std::endl; 
-            //     exit(1); 
-            // }
+            machine(reinterpret_cast<uint8_t const*>(cache), l);
         }
         header_ptr->compressed_size = 
             header_ptr->uncompressed_size = 
@@ -202,7 +199,7 @@ void ziper::write_local_header(std::filesystem::path const &p, cutie_tag::deflat
         u32 uncompressed_size {0}, compressed_size{0}; 
         *this->out << *header_ptr; 
         this->out->write(name.data(), name.length()); 
-        crc crc{}; 
+        crc32_algorithm_machine crc{}; 
         while (file_stream) {
             file_stream.read(cache, LENGTH); 
             auto l = file_stream.gcount(); 

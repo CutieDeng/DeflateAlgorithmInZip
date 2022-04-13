@@ -1,8 +1,36 @@
 #pragma once 
 
+// This method is quoted by the website: https://blog.csdn.net/yusha123/article/details/104991919/. 
+// Of course, I make a simple encapsulation to make it better for usage, then it supports the calculation for multiple times. 
+// That's owing to the properties of the algorithm CRC-32, and I make full use of it. 
+
+// The capsulation class is called: crc32_algorithm_machine, which means it's like an autometa machine to 'eat' your byte to get the result. 
+// It provides the only one method for two arguments: u8 byte array and the length of the array, and 
+// it would calculate the crc-32 value for it. 
+// And the implicit to the type uint32_t is used to get the result of it. 
+
 #include <cstdint> 
 
-inline uint32_t poly8_lookup[256] =
+namespace crc_algorithm {
+        extern uint32_t poly8_lookup[]; 
+}
+
+struct crc_algorithm_machine {
+        std::uint32_t value {0xFFFFFFFF}; 
+        crc_algorithm_machine& operator() (std::uint8_t const *p, std::uint32_t byte_length) {
+                using namespace crc_algorithm; 
+                for (std::uint32_t i {0}; i < byte_length; ++i)
+                        value = poly8_lookup[((std::uint8_t) value ^ *(p++))] ^ (value >> 8); 
+                return *this; 
+        }
+        operator std::uint32_t() const {
+                return value ^ 0xFFFFFFFF; 
+        }
+}; 
+
+typedef crc_algorithm_machine crc32_algorithm_machine; 
+
+inline uint32_t crc_algorithm::poly8_lookup[256] =
 {
  0, 0x77073096, 0xEE0E612C, 0x990951BA,
  0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
@@ -69,17 +97,3 @@ inline uint32_t poly8_lookup[256] =
  0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94,
  0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
 };
-
-struct crc {
-        std::uint32_t value {0xFFFFFFFF}; 
-        crc& operator() (std::uint8_t *p, std::uint32_t byte_length) {
-                for (std::uint32_t i {0}; i < byte_length; ++i)
-                        value = poly8_lookup[((std::uint8_t) value ^ *(p++))] ^ (value >> 8); 
-                return *this; 
-        }
-        operator std::uint32_t() const {
-                return value ^ 0xFFFFFFFF; 
-        }
-}; 
-
-// Quoted: https://blog.csdn.net/yusha123/article/details/104991919/
