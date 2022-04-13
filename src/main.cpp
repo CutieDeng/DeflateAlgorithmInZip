@@ -6,7 +6,7 @@
 
 #include "ziper.hpp"
 
-constexpr bool debug = true; 
+// #define NDEBUG
 
 int main(int argc, char *argv[]) {
     if (argc == 1) {
@@ -19,6 +19,6 @@ int main(int argc, char *argv[]) {
     ziper z (new std::ofstream("ans.zip", std::ios::binary), [](auto p) -> void {delete p; }); 
 
     for (auto s: reinterpret_cast<char *(&)[argc-1]>(*(argv+1))) {
-        z.write_local_header(std::string(s), stored_strategy_tag); 
+        z.write_local_header(std::string(s), deflate_strategy_tag); 
     }
 }
